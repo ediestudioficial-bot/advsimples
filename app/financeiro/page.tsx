@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { reportServerError } from "@/lib/report-server-error";
 import { revalidatePath } from "next/cache";
 import Nav from "../nav";
 import PremiumSelect from "../premium-select";
@@ -6,16 +7,20 @@ import PremiumSelect from "../premium-select";
 function moeda(v:number|string){return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 function whats(tel:string|null,msg:string){if(!tel)return null;let d=tel.replace(/\D/g,"");if(d.length===10||d.length===11)d=`55${d}`;return `https://wa.me/${d}?text=${encodeURIComponent(msg)}`;}
 
-async function criarCobranca(formData:FormData){"use server";const supabase=await createClient();await supabase.from("cobrancas").insert({cliente_id:formData.get("cliente_id") as string,caso_id:(formData.get("caso_id") as string)||null,descricao:formData.get("descricao") as string,valor:Number(String(formData.get("valor")).replace(",",".")),vencimento:formData.get("vencimento") as string,observacao:(formData.get("observacao") as string)||null});revalidatePath("/financeiro");revalidatePath("/hoje");}
-async function marcarPago(formData:FormData){"use server";const supabase=await createClient();await supabase.from("cobrancas").update({pago:true,pago_em:new Date().toISOString().slice(0,10),forma_pagamento:(formData.get("forma") as string)||"Recebido"}).eq("id",formData.get("id"));revalidatePath("/financeiro");revalidatePath("/hoje");}
+async function criarCobranca(formData:FormData){"use server";const supabase=await createClient();const {error}=await supabase.from("cobrancas").insert({cliente_id:formData.get("cliente_id") as string,caso_id:(formData.get("caso_id") as string)||null,descricao:formData.get("descricao") as string,valor:Number(String(formData.get("valor")).replace(",",".")),vencimento:formData.get("vencimento") as string,observacao:(formData.get("observacao") as string)||null});if(error){await reportServerError(supabase,"criar_cobranca","/financeiro",error);throw new Error("Não foi possível cadastrar a cobrança.");}revalidatePath("/financeiro");revalidatePath("/hoje");}
+async function marcarPago(formData:FormData){"use server";const supabase=await createClient();const {error}=await supabase.from("cobrancas").update({pago:true,pago_em:new Date().toISOString().slice(0,10),forma_pagamento:(formData.get("forma") as string)||"Recebido"}).eq("id",formData.get("id"));if(error){await reportServerError(supabase,"marcar_cobranca_paga","/financeiro",error);throw new Error("Não foi possível marcar a cobrança como paga.");}revalidatePath("/financeiro");revalidatePath("/hoje");}
 
 export default async function FinanceiroPage(){
  const supabase=await createClient();
- const [{data:clientes},{data:casos},{data:cobrancas}]=await Promise.all([
+ const [clientesRes,casosRes,cobrancasRes]=await Promise.all([
   supabase.from("clientes").select("id,nome,telefone").order("nome"),
   supabase.from("casos").select("id,titulo,cliente_id").order("titulo"),
   supabase.from("cobrancas").select("id,descricao,valor,vencimento,pago,pago_em,forma_pagamento,clientes(nome,telefone),casos(titulo)").order("vencimento",{ascending:true})
  ]);
+ if(clientesRes.error){await reportServerError(supabase,"listar_clientes_financeiro","/financeiro",clientesRes.error);throw new Error("Não foi possível carregar o financeiro.");}
+ if(casosRes.error){await reportServerError(supabase,"listar_casos_financeiro","/financeiro",casosRes.error);throw new Error("Não foi possível carregar o financeiro.");}
+ if(cobrancasRes.error){await reportServerError(supabase,"listar_cobrancas","/financeiro",cobrancasRes.error);throw new Error("Não foi possível carregar o financeiro.");}
+ const clientes=clientesRes.data,casos=casosRes.data,cobrancas=cobrancasRes.data;
  const hoje=new Date();hoje.setHours(0,0,0,0);const inicioMes=new Date(hoje.getFullYear(),hoje.getMonth(),1);const fim30=new Date(hoje);fim30.setDate(fim30.getDate()+30);
  const lista=cobrancas??[];const recebidoMes=lista.filter((c:any)=>c.pago&&c.pago_em&&new Date(c.pago_em+"T00:00:00")>=inicioMes).reduce((s:number,c:any)=>s+Number(c.valor),0);
  const aReceber30=lista.filter((c:any)=>!c.pago&&new Date(c.vencimento+"T00:00:00")>=hoje&&new Date(c.vencimento+"T00:00:00")<=fim30).reduce((s:number,c:any)=>s+Number(c.valor),0);
