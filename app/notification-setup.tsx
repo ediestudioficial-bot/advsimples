@@ -43,11 +43,13 @@ export default function NotificationSetup() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !json.endpoint || !json.keys?.p256dh || !json.keys?.auth) throw new Error("Assinatura inválida");
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Belem";
       const { error } = await supabase.from("push_subscriptions").upsert({
         usuario_id: user.id,
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
         auth_key: json.keys.auth,
+        timezone,
       }, { onConflict: "usuario_id,endpoint" });
       if (error) throw error;
       setState("active");
