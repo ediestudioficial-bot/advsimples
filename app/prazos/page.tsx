@@ -10,7 +10,8 @@ async function criarPrazo(formData: FormData) {
   const tipo = formData.get("tipo") as string;
   const descricao = formData.get("descricao") as string;
   const data_limite = formData.get("data_limite") as string;
-  await supabase.from("prazos").insert({ caso_id, tipo, descricao: descricao || null, data_limite });
+  const hora_limite = formData.get("hora_limite") as string;
+  await supabase.from("prazos").insert({ caso_id, tipo, descricao: descricao || null, data_limite, hora_limite: hora_limite || null });
   revalidatePath("/prazos");
   revalidatePath("/hoje");
 }
@@ -28,7 +29,7 @@ export default async function PrazosPage() {
   const supabase = await createClient();
   const [{ data: casos }, { data: prazos }] = await Promise.all([
     supabase.from("casos").select("id, titulo, clientes ( nome )").order("titulo"),
-    supabase.from("prazos").select("id, tipo, descricao, data_limite, concluido, casos ( titulo, clientes ( nome ) )").order("data_limite", { ascending: true }),
+    supabase.from("prazos").select("id, tipo, descricao, data_limite, hora_limite, concluido, casos ( titulo, clientes ( nome ) )").order("data_limite", { ascending: true }),
   ]);
   const opcoesCasos = (casos ?? []).map((c) => ({ value: c.id, label: `${(c.clientes as unknown as { nome: string } | null)?.nome ?? "Cliente"} — ${c.titulo}` }));
 
@@ -53,8 +54,12 @@ export default async function PrazosPage() {
             <form action={criarPrazo} className="space-y-3">
               <PremiumSelect name="caso_id" placeholder="Selecione o caso" options={opcoesCasos} />
               <PremiumSelect name="tipo" defaultValue="prazo" options={[{ value: "prazo", label: "Prazo" }, { value: "audiencia", label: "Audiência" }]} />
-              <input name="data_limite" type="date" required className="px-4 py-3 text-on-surface" />
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block"><span className="mb-1.5 block text-[10px] uppercase tracking-[.14em] text-on-surface-variant">Data</span><input name="data_limite" type="date" required className="px-4 py-3 text-on-surface" /></label>
+                <label className="block"><span className="mb-1.5 block text-[10px] uppercase tracking-[.14em] text-on-surface-variant">Horário</span><input name="hora_limite" type="time" className="px-4 py-3 text-on-surface" /></label>
+              </div>
               <input name="descricao" placeholder="Descrição (opcional)" className="px-4 py-3 text-on-surface placeholder:text-on-surface-variant" />
+              <div className="rounded-xl border border-secondary/15 bg-secondary/5 px-3 py-2.5 flex gap-2"><span className="material-symbols-outlined text-secondary text-[18px]">notifications_active</span><p className="text-[11px] text-on-surface-variant">Alertas progressivos: 7 dias, 3 dias, amanhã e no dia. Audiências com horário também recebem alerta próximo do compromisso.</p></div>
               <button type="submit" className="w-full bg-secondary text-on-secondary font-heading font-bold py-3 hover:brightness-110 transition">Cadastrar</button>
             </form>
           )}
@@ -73,7 +78,7 @@ export default async function PrazosPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1"><span className="text-[10px] uppercase tracking-wider text-on-surface-variant">{p.tipo === "audiencia" ? "Audiência" : "Prazo"}</span></div>
                     <h3 className="font-heading font-bold text-on-surface truncate">{caso?.clientes?.nome ?? "Cliente"} — {caso?.titulo}</h3>
-                    <p className="text-sm text-secondary-fixed-dim mt-1 font-semibold">{new Date(p.data_limite + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+                    <p className="text-sm text-secondary-fixed-dim mt-1 font-semibold">{new Date(p.data_limite + "T00:00:00").toLocaleDateString("pt-BR")}{p.hora_limite ? ` · ${String(p.hora_limite).slice(0,5)}` : ""}</p>
                     {p.descricao && <p className="text-xs text-on-surface-variant mt-1">{p.descricao}</p>}
                   </div>
                 </div>
