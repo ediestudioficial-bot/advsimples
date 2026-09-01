@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #131316;
+  --color-surface-dim: #131316;
+  --color-surface-bright: #39393c;
+  --color-surface-container-lowest: #0d0e11;
+  --color-surface-container-low: #1b1b1e;
+  --color-surface-container: #1f1f22;
+  --color-surface-container-high: #292a2c;
+  --color-surface-container-highest: #343537;
+  --color-on-surface: #e4e2e5;
+  --color-on-surface-variant: #c5c6cf;
+  --color-outline: #8f9099;
+  --color-outline-variant: #44474e;
+  --color-primary: #b5c6f0;
+  --color-on-primary: #1e3052;
+  --color-primary-container: #0a1e3f;
+  --color-on-primary-container: #7586ad;
+  --color-secondary: #f8bc54;
+  --color-on-secondary: #432c00;
+  --color-secondary-container: #bb8722;
+  --color-on-secondary-container: #3a2600;
+  --color-secondary-fixed-dim: #f8bc54;
+  --color-tertiary: #bec6e0;
+  --color-on-tertiary-container: #7e869e;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-background: #0f172a;
+  --color-on-background: #e4e2e5;
+
+  --font-heading: "Geist", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-gutter: 16px;
+  --spacing-margin-mobile: 20px;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.card {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.urgency-overdue { border-left-color: var(--color-error); }
+.urgency-today { border-left-color: var(--color-secondary); }
+.urgency-tomorrow { border-left-color: var(--color-secondary-container); }
+.urgency-upcoming { border-left-color: var(--color-outline); }
