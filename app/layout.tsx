@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import PWARegister from "./pwa-register";
+import LaunchSplash from "./launch-splash";
 
 export const metadata: Metadata = {
   title: "ADV Simples",
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-background text-on-background">
         <PWARegister />
+        <LaunchSplash />
         {children}
       </body>
     </html>
