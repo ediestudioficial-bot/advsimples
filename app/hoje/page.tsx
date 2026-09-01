@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Nav from "../nav";
+import NotificationSetup from "../notification-setup";
 
 type Prazo = {
   id: string;
@@ -48,6 +49,8 @@ export default async function HojePage() {
           <h1 className="font-heading text-4xl font-bold text-on-surface">Hoje</h1>
           <p className="text-on-surface-variant text-sm mt-2">O que precisa da sua atenção, sem ruído.</p>
         </header>
+
+        <NotificationSetup />
 
         <section className="grid grid-cols-3 gap-3">
           <div className="card p-4 text-center"><p className="text-2xl font-heading font-bold text-on-surface">{prazos.length}</p><p className="text-[10px] uppercase tracking-wider text-on-surface-variant mt-1">Pendentes</p></div>
