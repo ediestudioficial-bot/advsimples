@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import LogoutButton from "./hoje/logout-button";
 import ThemeToggle from "./theme-toggle";
-import { APP_VERSION } from "./beta-monitor";
+import { APP_VERSION } from "@/lib/version";
 
 const links=[{href:"/hoje",label:"Hoje",key:"hoje",icon:"calendar_today"},{href:"/clientes",label:"Clientes",key:"clientes",icon:"groups"},{href:"/casos",label:"Casos",key:"casos",icon:"work"},{href:"/prazos",label:"Prazos",key:"prazos",icon:"event_busy"},{href:"/financeiro",label:"Finanças",key:"financeiro",icon:"account_balance_wallet"},{href:"/documentos",label:"Docs",key:"documentos",icon:"description"}];
 
