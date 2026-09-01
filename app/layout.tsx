@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./launch-splash.css";
 import PWARegister from "./pwa-register";
 import LaunchSplash from "./launch-splash";
 
