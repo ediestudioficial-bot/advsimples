@@ -1,90 +1,64 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import Nav from "../nav";
+import PremiumSelect from "../premium-select";
 
 async function criarCaso(formData: FormData) {
   "use server";
   const supabase = await createClient();
   const cliente_id = formData.get("cliente_id") as string;
   const titulo = formData.get("titulo") as string;
-
   await supabase.from("casos").insert({ cliente_id, titulo });
-
   revalidatePath("/casos");
 }
 
 export default async function CasosPage() {
   const supabase = await createClient();
-
   const [{ data: clientes }, { data: casos }] = await Promise.all([
     supabase.from("clientes").select("id, nome").order("nome"),
-    supabase
-      .from("casos")
-      .select("id, titulo, status, criado_em, clientes ( nome )")
-      .order("criado_em", { ascending: false }),
+    supabase.from("casos").select("id, titulo, status, criado_em, clientes ( nome )").order("criado_em", { ascending: false }),
   ]);
+  const opcoes = (clientes ?? []).map((c) => ({ value: c.id, label: c.nome }));
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-24">
+    <div className="min-h-screen bg-transparent flex flex-col pb-28">
       <Nav active="casos" />
-
       <main className="flex-1 w-full max-w-2xl mx-auto px-margin-mobile py-xl flex flex-col gap-xl">
-        <h1 className="font-heading text-3xl font-bold text-on-surface">Casos</h1>
+        <header>
+          <p className="text-secondary text-[11px] uppercase tracking-[.24em] font-semibold mb-2">Carteira</p>
+          <h1 className="font-heading text-4xl font-bold text-on-surface">Casos</h1>
+          <p className="text-on-surface-variant text-sm mt-2">Cada demanda no lugar certo, ligada ao cliente correto.</p>
+        </header>
 
-        <div className="card border border-outline-variant rounded-lg p-5">
-          <h2 className="font-heading text-lg font-semibold text-on-surface mb-3">Novo caso</h2>
-
-          {(clientes ?? []).length === 0 ? (
-            <p className="text-on-surface-variant text-sm">
-              Cadastre um cliente primeiro antes de criar um caso.
-            </p>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/10 border border-secondary/20"><span className="material-symbols-outlined text-secondary">work_history</span></div>
+            <div><h2 className="font-heading text-lg font-semibold text-on-surface">Novo caso</h2><p className="text-xs text-on-surface-variant">Vincule a demanda a um cliente.</p></div>
+          </div>
+          {opcoes.length === 0 ? (
+            <p className="text-on-surface-variant text-sm">Cadastre um cliente primeiro.</p>
           ) : (
             <form action={criarCaso} className="space-y-3">
-              <select
-                name="cliente_id"
-                required
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
-              >
-                <option value="">Selecione o cliente</option>
-                {(clientes ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="titulo"
-                required
-                placeholder="Título do caso (ex: Ação de Cobrança)"
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-              <button
-                type="submit"
-                className="w-full bg-secondary text-on-secondary font-heading font-semibold rounded-full py-2.5 hover:opacity-90 transition"
-              >
-                Cadastrar caso
-              </button>
+              <PremiumSelect name="cliente_id" placeholder="Selecione o cliente" options={opcoes} />
+              <input name="titulo" required placeholder="Título do caso (ex: Ação de Cobrança)" className="px-4 py-3 text-on-surface placeholder:text-on-surface-variant" />
+              <button type="submit" className="w-full bg-secondary text-on-secondary font-heading font-bold py-3 hover:brightness-110 transition">Cadastrar caso</button>
             </form>
           )}
-        </div>
+        </section>
 
-        <div className="space-y-2">
-          {(casos ?? []).length === 0 && (
-            <p className="text-on-surface-variant text-sm">Nenhum caso ainda.</p>
-          )}
+        <section className="space-y-3">
+          {(casos ?? []).length === 0 && <div className="card p-7 text-center text-on-surface-variant">Nenhum caso ainda.</div>}
           {(casos ?? []).map((c) => (
-            <div
-              key={c.id}
-              className="card border-l-4 border-primary border-y border-r border-outline-variant rounded-lg p-4"
-            >
-              <p className="font-heading font-semibold text-on-surface">{c.titulo}</p>
-              <p className="text-sm text-on-surface-variant flex items-center gap-1 mt-0.5">
-                <span className="material-symbols-outlined text-[16px]">person</span>
-                {(c.clientes as unknown as { nome: string } | null)?.nome ?? "Cliente"} · {c.status}
-              </p>
-            </div>
+            <article key={c.id} className="card p-5 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-2"><span className="text-[10px] uppercase tracking-wider text-secondary bg-secondary/10 border border-secondary/15 rounded-full px-2.5 py-1">{c.status}</span></div>
+                <h3 className="font-heading font-bold text-lg text-on-surface truncate">{c.titulo}</h3>
+                <p className="text-sm text-on-surface-variant flex items-center gap-1.5 mt-1"><span className="material-symbols-outlined text-[17px]">person</span>{(c.clientes as unknown as { nome: string } | null)?.nome ?? "Cliente"}</p>
+              </div>
+              <div className="w-11 h-11 shrink-0 rounded-2xl bg-primary-container border border-outline-variant/30 flex items-center justify-center shadow-lg"><span className="material-symbols-outlined text-primary">balance</span></div>
+            </article>
           ))}
-        </div>
+        </section>
       </main>
     </div>
   );
