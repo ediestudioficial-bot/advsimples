@@ -3,6 +3,7 @@ import "./globals.css";
 import "./launch-splash.css";
 import PWARegister from "./pwa-register";
 import LaunchSplash from "./launch-splash";
+import BetaMonitor from "./beta-monitor";
 
 export const metadata: Metadata = {
   title: "ADV Simples",
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col bg-background text-on-background">
         <PWARegister />
         <LaunchSplash />
+        <BetaMonitor />
         {children}
       </body>
     </html>
