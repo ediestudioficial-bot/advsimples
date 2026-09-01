@@ -1,5 +1,5 @@
-const CACHE = "adv-simples-v3";
-const APP_SHELL = ["/icon.svg"];
+const CACHE = "adv-simples-v4";
+const APP_SHELL = ["/icon.svg?v=original-1"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)));
@@ -33,8 +33,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "ADV Simples";
   const options = {
     body: data.body || "Você tem uma atualização importante.",
-    icon: "/icon.svg",
-    badge: "/icon.svg",
+    icon: "/icon.svg?v=original-1",
+    badge: "/icon.svg?v=original-1",
     tag: data.tag || "adv-simples-alerta",
     renotify: true,
     data: { url: data.url || "/hoje" }
