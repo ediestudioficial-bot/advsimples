@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import LogoutButton from "./hoje/logout-button";
 
@@ -12,33 +13,35 @@ const links = [
 export default function Nav({ active }: { active: string }) {
   return (
     <>
-      {/* Top bar */}
-      <header className="bg-surface border-b border-outline-variant sticky top-0 z-40 flex items-center justify-between px-margin-mobile py-3">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>
-            gavel
-          </span>
-          <span className="font-heading text-lg font-bold text-secondary">ADV Simples</span>
+      <header className="premium-topbar sticky top-0 z-40 flex items-center justify-between px-margin-mobile py-3">
+        <div className="flex items-center gap-3">
+          <Image src="/adv-simples-mark.svg" alt="ADV Simples" width={36} height={36} className="premium-brand-mark" priority />
+          <div className="flex flex-col leading-none">
+            <span className="font-heading text-[17px] font-bold tracking-tight text-on-surface">ADV <span className="text-secondary">Simples</span></span>
+            <span className="text-[9px] uppercase tracking-[.22em] text-on-surface-variant mt-1">Seu escritório sob controle</span>
+          </div>
         </div>
-        <LogoutButton />
+        <div className="rounded-xl border border-outline-variant/40 bg-surface-container-low/70 shadow-lg px-1">
+          <LogoutButton />
+        </div>
       </header>
 
-      {/* Bottom nav (mobile) */}
-      <nav className="fixed bottom-0 w-full z-50 bg-surface-container flex justify-around items-center px-2 py-2 border-t border-outline-variant">
-        {links.map((link) => (
-          <Link
-            key={link.key}
-            href={link.href}
-            className={
-              link.key === active
-                ? "flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl p-1 w-16 h-14 transition"
-                : "flex flex-col items-center justify-center text-on-tertiary-container p-1 w-16 h-14 hover:text-secondary transition"
-            }
-          >
-            <span className="material-symbols-outlined text-[20px] mb-0.5">{link.icon}</span>
-            <span className="text-[11px] font-heading font-medium tracking-wide">{link.label}</span>
-          </Link>
-        ))}
+      <nav className="premium-bottom-nav fixed z-50 flex justify-around items-center px-2 py-2">
+        {links.map((link) => {
+          const activeItem = link.key === active;
+          return (
+            <Link
+              key={link.key}
+              href={link.href}
+              className={`nav-item ${activeItem ? "active" : ""} flex flex-col items-center justify-center p-1 w-16 h-14`}
+            >
+              <span className="material-symbols-outlined text-[21px] mb-0.5" style={{ fontVariationSettings: activeItem ? "'FILL' 1" : "'FILL' 0" }}>
+                {link.icon}
+              </span>
+              <span className="text-[10px] font-heading font-semibold tracking-wide">{link.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </>
   );
