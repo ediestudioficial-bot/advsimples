@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import Nav from "../nav";
+import PremiumSelect from "../premium-select";
 
 async function criarPrazo(formData: FormData) {
   "use server";
@@ -9,14 +10,7 @@ async function criarPrazo(formData: FormData) {
   const tipo = formData.get("tipo") as string;
   const descricao = formData.get("descricao") as string;
   const data_limite = formData.get("data_limite") as string;
-
-  await supabase.from("prazos").insert({
-    caso_id,
-    tipo,
-    descricao: descricao || null,
-    data_limite,
-  });
-
+  await supabase.from("prazos").insert({ caso_id, tipo, descricao: descricao || null, data_limite });
   revalidatePath("/prazos");
   revalidatePath("/hoje");
 }
@@ -25,122 +19,74 @@ async function marcarConcluido(formData: FormData) {
   "use server";
   const supabase = await createClient();
   const id = formData.get("id") as string;
-
   await supabase.from("prazos").update({ concluido: true }).eq("id", id);
-
   revalidatePath("/prazos");
   revalidatePath("/hoje");
 }
 
 export default async function PrazosPage() {
   const supabase = await createClient();
-
   const [{ data: casos }, { data: prazos }] = await Promise.all([
     supabase.from("casos").select("id, titulo, clientes ( nome )").order("titulo"),
-    supabase
-      .from("prazos")
-      .select("id, tipo, descricao, data_limite, concluido, casos ( titulo, clientes ( nome ) )")
-      .order("data_limite", { ascending: true }),
+    supabase.from("prazos").select("id, tipo, descricao, data_limite, concluido, casos ( titulo, clientes ( nome ) )").order("data_limite", { ascending: true }),
   ]);
+  const opcoesCasos = (casos ?? []).map((c) => ({ value: c.id, label: `${(c.clientes as unknown as { nome: string } | null)?.nome ?? "Cliente"} — ${c.titulo}` }));
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-24">
+    <div className="min-h-screen bg-transparent flex flex-col pb-28">
       <Nav active="prazos" />
-
       <main className="flex-1 w-full max-w-2xl mx-auto px-margin-mobile py-xl flex flex-col gap-xl">
-        <h1 className="font-heading text-3xl font-bold text-on-surface">Prazos</h1>
+        <header>
+          <p className="text-secondary text-[11px] uppercase tracking-[.24em] font-semibold mb-2">Prioridades</p>
+          <h1 className="font-heading text-4xl font-bold text-on-surface">Prazos</h1>
+          <p className="text-on-surface-variant text-sm mt-2">O que não pode passar despercebido.</p>
+        </header>
 
-        <div className="card border border-outline-variant rounded-lg p-5">
-          <h2 className="font-heading text-lg font-semibold text-on-surface mb-3">Novo prazo ou audiência</h2>
-
-          {(casos ?? []).length === 0 ? (
-            <p className="text-on-surface-variant text-sm">
-              Cadastre um caso primeiro antes de criar um prazo.
-            </p>
+        <section className="card p-5 sm:p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/10 border border-secondary/20"><span className="material-symbols-outlined text-secondary">add_alarm</span></div>
+            <div><h2 className="font-heading text-lg font-semibold text-on-surface">Novo prazo ou audiência</h2><p className="text-xs text-on-surface-variant">Registre agora para não depender da memória.</p></div>
+          </div>
+          {opcoesCasos.length === 0 ? (
+            <p className="text-on-surface-variant text-sm">Cadastre um caso primeiro.</p>
           ) : (
             <form action={criarPrazo} className="space-y-3">
-              <select
-                name="caso_id"
-                required
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
-              >
-                <option value="">Selecione o caso</option>
-                {(casos ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {(c.clientes as unknown as { nome: string } | null)?.nome ?? "Cliente"} — {c.titulo}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                name="tipo"
-                required
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
-              >
-                <option value="prazo">Prazo</option>
-                <option value="audiencia">Audiência</option>
-              </select>
-
-              <input
-                name="data_limite"
-                type="date"
-                required
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-
-              <input
-                name="descricao"
-                placeholder="Descrição (opcional)"
-                className="w-full rounded-md bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-
-              <button
-                type="submit"
-                className="w-full bg-secondary text-on-secondary font-heading font-semibold rounded-full py-2.5 hover:opacity-90 transition"
-              >
-                Cadastrar
-              </button>
+              <PremiumSelect name="caso_id" placeholder="Selecione o caso" options={opcoesCasos} />
+              <PremiumSelect name="tipo" defaultValue="prazo" options={[{ value: "prazo", label: "Prazo" }, { value: "audiencia", label: "Audiência" }]} />
+              <input name="data_limite" type="date" required className="px-4 py-3 text-on-surface" />
+              <input name="descricao" placeholder="Descrição (opcional)" className="px-4 py-3 text-on-surface placeholder:text-on-surface-variant" />
+              <button type="submit" className="w-full bg-secondary text-on-secondary font-heading font-bold py-3 hover:brightness-110 transition">Cadastrar</button>
             </form>
           )}
-        </div>
+        </section>
 
-        <div className="space-y-2">
-          {(prazos ?? []).length === 0 && (
-            <p className="text-on-surface-variant text-sm">Nenhum prazo ainda.</p>
-          )}
-          {(prazos ?? []).map((p) => (
-            <div
-              key={p.id}
-              className={`card border-l-4 ${
-                p.concluido ? "border-outline opacity-50" : "border-secondary"
-              } border-y border-r border-outline-variant rounded-lg p-4 flex items-center justify-between`}
-            >
-              <div>
-                <p className="font-heading font-semibold text-on-surface">
-                  {(p.casos as unknown as { clientes: { nome: string } | null; titulo: string } | null)?.clientes?.nome ?? "Cliente"}
-                  {" — "}
-                  {(p.casos as unknown as { titulo: string } | null)?.titulo}
-                </p>
-                <p className="text-sm text-on-surface-variant mt-0.5">
-                  {p.tipo === "audiencia" ? "Audiência" : "Prazo"} ·{" "}
-                  {new Date(p.data_limite + "T00:00:00").toLocaleDateString("pt-BR")}
-                  {p.descricao ? ` · ${p.descricao}` : ""}
-                </p>
-              </div>
-              {!p.concluido && (
-                <form action={marcarConcluido}>
-                  <input type="hidden" name="id" value={p.id} />
-                  <button
-                    type="submit"
-                    className="text-xs text-secondary hover:opacity-80 border border-secondary rounded-full px-3 py-1"
-                  >
-                    Concluir
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
-        </div>
+        <section className="space-y-3">
+          {(prazos ?? []).length === 0 && <div className="card p-7 text-center text-on-surface-variant">Nenhum prazo ainda.</div>}
+          {(prazos ?? []).map((p) => {
+            const caso = p.casos as unknown as { clientes: { nome: string } | null; titulo: string } | null;
+            return (
+              <article key={p.id} className={`card p-5 flex items-center justify-between gap-4 ${p.concluido ? "opacity-50" : ""}`}>
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center border shadow-lg ${p.tipo === "audiencia" ? "bg-error/8 border-error/20 text-error" : "bg-secondary/10 border-secondary/20 text-secondary"}`}>
+                    <span className="material-symbols-outlined">{p.tipo === "audiencia" ? "gavel" : "schedule"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1"><span className="text-[10px] uppercase tracking-wider text-on-surface-variant">{p.tipo === "audiencia" ? "Audiência" : "Prazo"}</span></div>
+                    <h3 className="font-heading font-bold text-on-surface truncate">{caso?.clientes?.nome ?? "Cliente"} — {caso?.titulo}</h3>
+                    <p className="text-sm text-secondary-fixed-dim mt-1 font-semibold">{new Date(p.data_limite + "T00:00:00").toLocaleDateString("pt-BR")}</p>
+                    {p.descricao && <p className="text-xs text-on-surface-variant mt-1">{p.descricao}</p>}
+                  </div>
+                </div>
+                {!p.concluido && (
+                  <form action={marcarConcluido} className="shrink-0">
+                    <input type="hidden" name="id" value={p.id} />
+                    <button type="submit" className="!min-h-0 text-[11px] text-secondary border border-secondary/35 bg-secondary/5 rounded-lg px-3 py-2">Concluir</button>
+                  </form>
+                )}
+              </article>
+            );
+          })}
+        </section>
       </main>
     </div>
   );
