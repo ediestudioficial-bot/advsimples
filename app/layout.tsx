@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./launch-splash.css";
+import "./module-tour.css";
 import PWARegister from "./pwa-register";
 import LaunchSplash from "./launch-splash";
 import BetaMonitor from "./beta-monitor";
