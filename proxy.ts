@@ -47,13 +47,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isPublicAuth && !isResetPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/hoje";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
   return response;
 }
 
