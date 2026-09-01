@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { reportServerError } from "@/lib/report-server-error";
 import { revalidatePath } from "next/cache";
 import Nav from "../nav";
 
@@ -10,13 +11,15 @@ async function criarCliente(formData: FormData) {
   const nome = formData.get("nome") as string;
   const telefone = formData.get("telefone") as string;
   const email = formData.get("email") as string;
-  await supabase.from("clientes").insert({ nome, telefone: telefone || null, email: email || null });
+  const { error } = await supabase.from("clientes").insert({ nome, telefone: telefone || null, email: email || null });
+  if (error) { await reportServerError(supabase, "criar_cliente", "/clientes", error); throw new Error("Não foi possível cadastrar o cliente."); }
   revalidatePath("/clientes");
 }
 
 export default async function ClientesPage() {
   const supabase = await createClient();
-  const { data: clientes } = await supabase.from("clientes").select("id, nome, telefone, email, criado_em").order("criado_em", { ascending: false });
+  const { data: clientes, error } = await supabase.from("clientes").select("id, nome, telefone, email, criado_em").order("criado_em", { ascending: false });
+  if (error) { await reportServerError(supabase, "listar_clientes", "/clientes", error); throw new Error("Não foi possível carregar os clientes."); }
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col pb-28">
