@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ThemeToggle from "../theme-toggle";
@@ -10,10 +10,7 @@ export default function LoginPage() {
   const [password,setPassword]=useState("");
   const [erro,setErro]=useState<string|null>(null);
   const [carregando,setCarregando]=useState(false);
-  const [splash,setSplash]=useState(true);
   const router=useRouter();
-
-  useEffect(()=>{const t=window.setTimeout(()=>setSplash(false),1350);return()=>window.clearTimeout(t)},[]);
 
   async function handleLogin(e:React.FormEvent){
     e.preventDefault();setErro(null);setCarregando(true);
@@ -23,8 +20,6 @@ export default function LoginPage() {
     if(error){setErro("E-mail ou senha inválidos.");return}
     router.push("/hoje");router.refresh();
   }
-
-  if(splash)return <main className="auth-shell relative min-h-screen overflow-hidden flex items-center justify-center"><div className="absolute h-72 w-72 rounded-full bg-[#d6a344]/10 blur-3xl"/><div className="relative flex flex-col items-center"><img src="/icon.svg" alt="ADV Simples" className="h-28 w-28 drop-shadow-[0_22px_34px_rgba(0,0,0,.28)]"/><h1 className="auth-title mt-6 font-heading text-3xl font-bold">ADV <span className="text-[#c98b27]">SIMPLES</span></h1><p className="auth-muted mt-2 text-xs uppercase tracking-[.24em]">Seu escritório sob controle</p><div className="mt-8 h-px w-28 bg-gradient-to-r from-transparent via-[#d7a54d] to-transparent"/></div></main>;
 
   return <main className="auth-shell relative min-h-screen w-full overflow-hidden px-5 py-10 flex items-center justify-center">
     <div className="absolute right-5 top-5 z-30"><ThemeToggle/></div>
