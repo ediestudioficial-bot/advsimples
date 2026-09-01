@@ -1,0 +1,10 @@
+"use client";
+
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export default function RecuperarSenhaPage(){
+  const [email,setEmail]=useState(""); const [msg,setMsg]=useState<string|null>(null); const [loading,setLoading]=useState(false);
+  async function enviar(e:React.FormEvent){e.preventDefault();setLoading(true);setMsg(null);const supabase=createClient();const redirectTo=`${window.location.origin}/auth/callback?next=/redefinir-senha`;const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});setLoading(false);setMsg(error?"Não foi possível enviar o e-mail agora.":"Enviamos um link para redefinir sua senha. Confira sua caixa de entrada.");}
+  return <main className="min-h-screen bg-[#08111f] px-5 py-10 flex items-center justify-center"><section className="w-full max-w-[460px] card p-7 sm:p-9"><div className="text-center mb-7"><img src="/icon.svg" alt="ADV Simples" className="w-20 h-20 mx-auto mb-4"/><p className="text-secondary text-[10px] uppercase tracking-[.24em] font-semibold">Acesso</p><h1 className="font-heading text-3xl font-bold text-white mt-2">Recuperar senha</h1><p className="text-sm text-on-surface-variant mt-2">Informe o e-mail usado no ADV Simples.</p></div>{msg&&<div className="mb-4 rounded-xl border border-secondary/20 bg-secondary/5 p-3 text-sm text-on-surface">{msg}</div>}<form onSubmit={enviar} className="space-y-3"><input value={email} onChange={e=>setEmail(e.target.value)} type="email" required placeholder="Seu e-mail"/><button disabled={loading} className="w-full bg-secondary text-on-secondary font-heading font-bold py-3">{loading?"Enviando...":"Enviar link de recuperação"}</button></form><a href="/login" className="block text-center text-sm text-on-surface-variant mt-5 hover:text-secondary">Voltar para entrar</a></section></main>;
+}
