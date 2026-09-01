@@ -19,7 +19,7 @@ export default function LoginPage() {
     const{error}=await supabase.auth.signInWithPassword({email,password});
     setCarregando(false);
     if(error){setErro("E-mail ou senha inválidos.");return}
-    router.push("/hoje");router.refresh();
+    router.push("/boas-vindas");router.refresh();
   }
 
   async function handleGoogleLogin(){
@@ -27,7 +27,7 @@ export default function LoginPage() {
     const supabase=createClient();
     const{error}=await supabase.auth.signInWithOAuth({
       provider:"google",
-      options:{redirectTo:`${window.location.origin}/auth/callback`}
+      options:{redirectTo:`${window.location.origin}/auth/callback?next=/boas-vindas`}
     });
     if(error){setCarregandoGoogle(false);setErro("Não foi possível entrar com o Google. Tente novamente.");}
   }
