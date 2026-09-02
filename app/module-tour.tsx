@@ -3,38 +3,152 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type TourStep = { title: string; text: string; selector: string; icon: string };
+type TourStep = {
+  title: string;
+  text: string;
+  action: string;
+  selector: string;
+  icon: string;
+};
 
 const tours: Record<string, TourStep[]> = {
   hoje: [
-    { title: "Seu centro de controle", text: "Comece sempre por aqui. O ADV Simples reúne o que exige sua atenção agora, sem você precisar procurar em várias telas.", selector: "main header", icon: "dashboard" },
-    { title: "Visão rápida do dia", text: "Estes indicadores resumem pendências, urgências e audiências. Um olhar já mostra onde concentrar sua energia.", selector: "main section.grid", icon: "monitoring" },
-    { title: "Prioridades em ordem", text: "Prazos e audiências aparecem organizados pela urgência. Datas críticas ganham destaque automaticamente.", selector: "main section.flex.flex-col", icon: "priority_high" },
-    { title: "Tudo a um toque", text: "Use a barra inferior para navegar entre clientes, casos, prazos, finanças e documentos.", selector: ".premium-bottom-nav", icon: "touch_app" },
+    {
+      title: "Esta é a sua tela principal",
+      text: "Sempre que abrir o ADV Simples, comece pelo Hoje. Aqui ficam reunidas as coisas que precisam da sua atenção primeiro.",
+      action: "Use esta tela para decidir o que fazer antes de abrir os outros módulos.",
+      selector: "main header",
+      icon: "dashboard",
+    },
+    {
+      title: "Veja o que está urgente",
+      text: "Estes três números mostram quantas pendências existem, quantas já são urgentes e quantas são audiências.",
+      action: "Se o número de urgentes subir, abra Prazos e resolva os itens críticos primeiro.",
+      selector: "main section.grid",
+      icon: "monitoring",
+    },
+    {
+      title: "As prioridades aparecem aqui",
+      text: "Prazos, audiências e cobranças importantes aparecem organizados para você não depender da memória.",
+      action: "Leia esta área antes de começar o dia e conclua os itens conforme forem resolvidos.",
+      selector: "main section.flex.flex-col",
+      icon: "priority_high",
+    },
+    {
+      title: "Navegue por aqui",
+      text: "A barra inferior leva aos seis módulos principais: Hoje, Clientes, Casos, Prazos, Finanças e Documentos.",
+      action: "O fluxo recomendado é: Cliente → Caso → Prazo/Documento/Finança.",
+      selector: ".premium-bottom-nav",
+      icon: "touch_app",
+    },
   ],
   clientes: [
-    { title: "Cadastre o essencial", text: "Inclua o cliente com os dados básicos. Você pode começar rápido e organizar o restante conforme o atendimento evolui.", selector: "main section.card", icon: "person_add" },
-    { title: "WhatsApp direto", text: "Quando houver telefone, toque no contato do cliente para abrir uma conversa no WhatsApp sem copiar número nenhum.", selector: "main section.space-y-3", icon: "chat" },
-    { title: "Clientes organizados", text: "A lista concentra seus contatos e serve de base para casos, documentos e cobranças.", selector: "main header", icon: "groups" },
+    {
+      title: "Comece cadastrando o cliente",
+      text: "Antes de criar caso, prazo, documento ou cobrança, cadastre a pessoa atendida aqui.",
+      action: "Informe pelo menos o nome. WhatsApp e e-mail podem ser adicionados quando você tiver esses dados.",
+      selector: "main section.card",
+      icon: "person_add",
+    },
+    {
+      title: "Sua carteira fica nesta lista",
+      text: "Cada cliente cadastrado aparece aqui. O telefone, quando informado, vira um atalho direto para o WhatsApp.",
+      action: "Depois de cadastrar o cliente, vá para Casos e crie a demanda ligada a ele.",
+      selector: "main section.space-y-3",
+      icon: "groups",
+    },
+    {
+      title: "Regra simples para não se perder",
+      text: "Cliente é a pessoa. Caso é a demanda jurídica. Não misture os dois: um mesmo cliente pode ter vários casos.",
+      action: "Cadastre o cliente uma vez e reutilize esse cadastro nos próximos atendimentos.",
+      selector: "main header",
+      icon: "account_tree",
+    },
   ],
   casos: [
-    { title: "Cada demanda no lugar certo", text: "Crie um caso e vincule ao cliente correto. Isso conecta prazos, documentos e financeiro à mesma demanda.", selector: "main section.card", icon: "work" },
-    { title: "Carteira organizada", text: "Aqui você acompanha os casos já cadastrados sem misturar informações entre clientes.", selector: "main section.space-y-3", icon: "folder_open" },
+    {
+      title: "Crie uma demanda para o cliente",
+      text: "Aqui você transforma o atendimento em um caso organizado. Primeiro escolha o cliente e depois dê um nome claro à demanda.",
+      action: "Exemplo: João da Silva → Ação de Cobrança. Evite títulos genéricos como apenas 'Processo'.",
+      selector: "main section.card",
+      icon: "work",
+    },
+    {
+      title: "Os casos ativos ficam aqui",
+      text: "Esta lista mostra cada demanda separada e o cliente a quem ela pertence.",
+      action: "Depois de criar o caso, use Prazos, Documentos e Finanças sempre vinculando ao caso correto.",
+      selector: "main section.space-y-3",
+      icon: "folder_open",
+    },
   ],
   prazos: [
-    { title: "Registre antes de esquecer", text: "Cadastre prazo ou audiência, escolha o caso, data e horário. O ADV Simples passa a acompanhar isso por você.", selector: "main section.card", icon: "add_alarm" },
-    { title: "Alertas progressivos", text: "O sistema prepara lembretes antes do vencimento e reforça compromissos próximos. Audiências com horário recebem atenção extra.", selector: "main header", icon: "notifications_active" },
-    { title: "Concluiu? Marque aqui", text: "Ao finalizar um prazo, marque como concluído. Ele deixa de aparecer como pendência no Hoje.", selector: "main section.space-y-3", icon: "task_alt" },
+    {
+      title: "Cadastre o compromisso assim que souber dele",
+      text: "Escolha o caso, informe se é prazo ou audiência e registre data e horário quando houver.",
+      action: "Não deixe para depois: é este cadastro que alimenta o Hoje e os alertas automáticos.",
+      selector: "main section.card",
+      icon: "add_alarm",
+    },
+    {
+      title: "O ADV Simples passa a lembrar por você",
+      text: "Os alertas são progressivos antes do vencimento. Audiências com horário recebem atenção adicional perto do compromisso.",
+      action: "Mantenha as notificações do navegador/PWA ativadas para receber esses avisos.",
+      selector: "main header",
+      icon: "notifications_active",
+    },
+    {
+      title: "Concluiu? Tire da fila",
+      text: "Os prazos cadastrados aparecem nesta área. Quando resolver um deles, use o botão Concluir.",
+      action: "Ao concluir, o item deixa de contar como pendência no Hoje e sua tela principal fica limpa.",
+      selector: "main section.space-y-3",
+      icon: "task_alt",
+    },
   ],
   financeiro: [
-    { title: "Dinheiro sem planilha", text: "Veja rapidamente o que entrou no mês, o que vence nos próximos 30 dias e o que está atrasado.", selector: "main section.grid", icon: "account_balance_wallet" },
-    { title: "Cadastre honorários e parcelas", text: "Crie uma cobrança, vincule ao cliente e, se quiser, ao caso. Informe valor e vencimento e deixe o app acompanhar.", selector: "main section.card", icon: "payments" },
-    { title: "Cobrança prática", text: "Nas pendências você pode abrir o WhatsApp com a mensagem pronta ou marcar o valor como recebido em um toque.", selector: "main section.space-y-3", icon: "send" },
+    {
+      title: "Veja sua situação financeira de relance",
+      text: "Os três cartões mostram o que entrou no mês, o que vence nos próximos 30 dias e o que já está atrasado.",
+      action: "Use o valor em atraso como sua lista imediata de cobrança.",
+      selector: "main section.grid",
+      icon: "account_balance_wallet",
+    },
+    {
+      title: "Cadastre cada valor a receber",
+      text: "Crie a cobrança, escolha o cliente, vincule ao caso quando fizer sentido e informe descrição, valor e vencimento.",
+      action: "Cadastre parcelas separadamente para que cada vencimento gere acompanhamento próprio.",
+      selector: "main section.card",
+      icon: "payments",
+    },
+    {
+      title: "Acompanhe até o recebimento",
+      text: "As cobranças pendentes ficam nesta lista. Você pode cobrar pelo WhatsApp ou marcar o valor como pago.",
+      action: "Só marque como pago depois de confirmar o recebimento. Assim o resumo mensal permanece confiável.",
+      selector: "main section.space-y-3",
+      icon: "check_circle",
+    },
   ],
   documentos: [
-    { title: "Controle o que está faltando", text: "Registre o documento solicitado e associe ao caso. Assim você não precisa voltar à conversa para lembrar o que pediu.", selector: "main section.card", icon: "note_add" },
-    { title: "Pendências visíveis", text: "Marque cada documento quando chegar. O app mostra claramente o que foi recebido e o que ainda falta.", selector: "main section.space-y-4", icon: "inventory_2" },
-    { title: "Peça pelo WhatsApp", text: "Quando houver documentos pendentes e telefone cadastrado, envie a lista ao cliente diretamente pelo WhatsApp.", selector: "main header", icon: "chat" },
+    {
+      title: "Registre o documento que está faltando",
+      text: "Escolha o caso e escreva o nome do documento solicitado. Isso cria uma pendência visível no app.",
+      action: "Exemplos: RG, comprovante de residência, procuração, contrato ou extrato bancário.",
+      selector: "main section.card",
+      icon: "note_add",
+    },
+    {
+      title: "Confira o que chegou e o que falta",
+      text: "Os documentos ficam agrupados por caso. Cada item mostra claramente se ainda está pendente ou já foi recebido.",
+      action: "Quando o cliente enviar o documento, toque em Recebido para limpar a pendência.",
+      selector: "main section.space-y-4",
+      icon: "inventory_2",
+    },
+    {
+      title: "Não procure mensagens antigas",
+      text: "Quando houver pendências e telefone cadastrado, o ADV Simples prepara a solicitação para enviar pelo WhatsApp.",
+      action: "Use esse recurso para cobrar todos os documentos pendentes daquele caso de uma só vez.",
+      selector: "main header",
+      icon: "chat",
+    },
   ],
 };
 
@@ -43,6 +157,8 @@ export default function ModuleTour({ module }: { module: string }) {
   const supabase = useMemo(() => createClient(), []);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [placement, setPlacement] = useState<"top" | "bottom">("bottom");
+  const [targetFound, setTargetFound] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [onboarding, setOnboarding] = useState<Record<string, boolean>>({});
 
@@ -57,7 +173,12 @@ export default function ModuleTour({ module }: { module: string }) {
       if (!alive) return;
       setOnboarding(seen);
       if (steps.length && !seen[module]) {
-        window.setTimeout(() => { if (alive) { setStep(0); setOpen(true); } }, 650);
+        window.setTimeout(() => {
+          if (alive) {
+            setStep(0);
+            setOpen(true);
+          }
+        }, 700);
       }
     }
     void load();
@@ -67,10 +188,23 @@ export default function ModuleTour({ module }: { module: string }) {
   useEffect(() => {
     if (!open || !steps[step]) return;
     const el = document.querySelector(steps[step].selector) as HTMLElement | null;
-    if (!el) return;
+    setTargetFound(Boolean(el));
+    if (!el) {
+      setPlacement("bottom");
+      return;
+    }
+
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => el.classList.add("tour-highlight"), 180);
-    return () => el.classList.remove("tour-highlight");
+    const timer = window.setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      setPlacement(rect.top + rect.height / 2 > window.innerHeight * 0.52 ? "top" : "bottom");
+      el.classList.add("tour-highlight");
+    }, 260);
+
+    return () => {
+      window.clearTimeout(timer);
+      el.classList.remove("tour-highlight");
+    };
   }, [open, step, steps]);
 
   async function finish() {
@@ -81,7 +215,19 @@ export default function ModuleTour({ module }: { module: string }) {
     await supabase.from("perfis").update({ onboarding: next }).eq("id", userId);
   }
 
-  function replay() { setStep(0); setOpen(true); }
+  function next() {
+    if (step >= steps.length - 1) {
+      void finish();
+      return;
+    }
+    setStep((s) => s + 1);
+  }
+
+  function replay() {
+    setStep(0);
+    setOpen(true);
+  }
+
   if (!steps.length) return null;
   const current = steps[step];
 
@@ -89,20 +235,41 @@ export default function ModuleTour({ module }: { module: string }) {
     <button type="button" onClick={replay} title="Ver dicas deste módulo" aria-label="Ver dicas deste módulo" className="tour-help-button">
       <span className="material-symbols-outlined">help</span>
     </button>
-    {open && <div className="tour-layer" role="dialog" aria-modal="true" aria-label={`Guia de ${module}`}>
-      <div className="tour-card">
+
+    {open && <div
+      className="tour-layer"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Guia de ${module}`}
+      onClick={next}
+    >
+      <div className={`tour-card tour-card-${placement}`} onClick={(e) => e.stopPropagation()}>
         <div className="tour-card-top">
           <div className="tour-icon"><span className="material-symbols-outlined">{current.icon}</span></div>
-          <div className="min-w-0 flex-1"><p className="tour-kicker">Guia rápido · {step + 1} de {steps.length}</p><h2>{current.title}</h2></div>
-          <button type="button" onClick={finish} className="tour-close" aria-label="Fechar guia"><span className="material-symbols-outlined">close</span></button>
+          <div className="min-w-0 flex-1">
+            <p className="tour-kicker">Passo {step + 1} de {steps.length}</p>
+            <h2>{current.title}</h2>
+          </div>
+          <button type="button" onClick={() => void finish()} className="tour-close" aria-label="Fechar guia">
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
+
         <p className="tour-text">{current.text}</p>
-        <div className="tour-progress">{steps.map((_,i)=><span key={i} className={i===step?"active":""}/>)}</div>
+        <div className="tour-do">
+          <span className="material-symbols-outlined">touch_app</span>
+          <p><strong>O que fazer:</strong> {current.action}</p>
+        </div>
+        {!targetFound && <p className="tour-fallback">Esta área ainda está vazia. Ela aparecerá assim que você fizer o primeiro cadastro.</p>}
+
+        <div className="tour-progress">{steps.map((_, i) => <span key={i} className={i === step ? "active" : i < step ? "done" : ""} />)}</div>
+        <p className="tour-tap-hint">Você também pode tocar fora deste cartão para continuar.</p>
+
         <div className="tour-actions">
-          <button type="button" onClick={finish} className="tour-skip">Pular dicas</button>
+          <button type="button" onClick={() => void finish()} className="tour-skip">Encerrar guia</button>
           <div className="flex gap-2">
-            {step>0&&<button type="button" onClick={()=>setStep(s=>s-1)} className="tour-secondary">Voltar</button>}
-            <button type="button" onClick={()=>step===steps.length-1?void finish():setStep(s=>s+1)} className="tour-primary">{step===steps.length-1?"Entendi":"Próximo"}</button>
+            {step > 0 && <button type="button" onClick={() => setStep((s) => s - 1)} className="tour-secondary">Voltar</button>}
+            <button type="button" onClick={next} className="tour-primary">{step === steps.length - 1 ? "Concluir" : "Próximo"}</button>
           </div>
         </div>
       </div>
